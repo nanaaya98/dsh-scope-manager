@@ -17,6 +17,13 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org
       - run: npm install
-      - run: npm publish --provenance --access public
+      - name: 发布到 npm
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "dsh-scope-manager@$VERSION" version >/dev/null 2>&1; then
+            echo "dsh-scope-manager@$VERSION 已经在 registry 上，跳过发布。"
+            exit 0
+          fi
+          npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
