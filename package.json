@@ -58,5 +58,9 @@
   "dependencies": {
     "yaml": "^2.9.1"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }
