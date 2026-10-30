@@ -233,7 +233,7 @@ MCP 服务器连上以后会往系统提示词里推一段目录（段落名固�
 dsh plugin --profile <profile> add dsh-scope-manager
 
 # GitHub
-dsh plugin --profile <profile> add github:nanaaya/dsh-scope-manager
+dsh plugin --profile <profile> add github:nanaaya98/dsh-scope-manager
 ```
 
 装完把 `dsh-scope-manager` 加进 profile 的 `dsh.profile.bundles` 列表，重启 DSH 即生效。
