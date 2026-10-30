@@ -1,0 +1,62 @@
+{
+  "name": "dsh-scope-manager",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness 作用域管家：按「全局 / 工作区 / 会话」三层作用域管理角色卡、工具、技能、MCP 与预设，带侧边栏。Scope manager for DeepSeek Harness: presets, persona cards, tools, skills and MCP connections bound to global / workspace / session layers.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "dsh": ">=0.2.1-rc.2 <0.2.2",
+    "node": ">=18"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "plugin",
+    "scope",
+    "workspace",
+    "session",
+    "preset",
+    "persona",
+    "mcp"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nanaaya98/dsh-scope-manager.git"
+  },
+  "homepage": "https://github.com/nanaaya98/dsh-scope-manager#readme",
+  "bugs": {
+    "url": "https://github.com/nanaaya98/dsh-scope-manager/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": []
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/dsh-llm": ">=0.2.1-rc.2 <0.2.2",
+    "@deepseek-ai/dsh-tools": ">=0.2.1-rc.2 <0.2.2",
+    "react": "^18.2.0"
+  },
+  "dependencies": {
+    "yaml": "^2.9.1"
+  },
+  "license": "MIT"
+}

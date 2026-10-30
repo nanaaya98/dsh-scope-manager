@@ -1,0 +1,16 @@
+# 只挂载本插件。本插件不改动任何既有宿主行：它只监听
+# system-prompt/assemble（改工具描述）、agent/pre-step（注入角色卡）、
+# 并注册一条自己的 HTTP 路由。
+#
+# 双挂防护：只看原始 options。Entry.disabled 是计算属性，
+# 从另一个 disabled 表达式里读它会在启动时递归。
+#
+# IIFE + try/catch 的原因：这段表达式在宿主每次启动时都被求值
+# （cordis-plugin-loader Entry.disabledOf → evaluate → new Function+eval），
+# 而那条调用链自己没有保护。读宿主内部形状一旦上游变了就会抛，
+# 那时的两个结局都不可接受：「DSH 起不来」或「这一行永不挂载」。
+# 所以出错时返回 false（不屏蔽 → 保持挂载），绝不抛出。
+- insert:
+    - id: dsh-scope-manager
+      name: 'dsh-scope-manager'
+      disabled: !!js "(function () { try { return [...ctx.loader.entries()].some((e) => e.options.id !== 'dsh-scope-manager' && e.options.name === 'dsh-scope-manager' && e.options.disabled !== true && typeof e.options.disabled !== 'object') } catch (err) { return false } })()"
