@@ -19,6 +19,7 @@ import { manifestPathInSource, toolNamesFromManifest } from '../lib/plugin-manif
 import { diffSnapshots } from '../lib/plugin-watch.js';
 import { scanPromptVars, validatePromptVars } from '../lib/prompt-vars.js';
 import { scoreSectionHit } from '../lib/section-source.js';
+import { SYSTEM_SECTION_OWNERS, systemSectionOwner } from '../lib/system-sections.js';
 import { reorderSections, PINNED_SECTIONS } from '../lib/index.js';
 import { ALWAYS_ON_SECTIONS, isAlwaysOnSection } from '../lib/always-on.js';
 import { toolAllowedByFilter } from '../lib/resolve.js';
@@ -763,12 +764,36 @@ console.log('\n[11] MCP 段落：`mcp:<server>` 归到那台服务器的工具�
         !onlySec.sectionOnlyGroups.some((g) => g.owner === '@deepseek-ai/dsh-system-prompt')
         && !onlySec.byGroup.has('system::@deepseek-ai/dsh-system-prompt'),
         onlySec.sectionOnlyGroups.map((g) => [g.category, g.owner]));
-    check('宿主自带的纯段落包也不落到「未归组」',
+    check('人设那几段归「角色卡」管，不落到「未归组」',
         !onlySec.ungrouped.some((s) => s.name === 'harness:identity'),
+        onlySec.ungrouped.map((s) => s.name));
+    check('常开的那几段归「角色卡」管，不在未归组里露头',
+        !onlySec.ungrouped.some((s) => s.name === 'deployment:persona-prefix'),
         onlySec.ungrouped.map((s) => s.name));
     check('有工具可接的插件不会多出一个空组',
         !onlySec.sectionOnlyGroups.some((g) => g.owner === 'dsh-meme'),
         onlySec.sectionOnlyGroups.map((g) => g.owner));
+
+    // 宿主自带的纯段落包（只有段落、没有工具）：不补空组，但段落要能看见 ——
+    // 落到「未归组」，并且带上来源包，界面上标得出它属于哪个官方包。
+    const hostSec = associateSections(
+        [{ category: 'system', owner: 'dsh-tool-bash', tools: [{ name: 'bash' }] }],
+        [
+            { name: 'app:web-surface', plugin: '@deepseek-ai/dsh-harness-dev-context' },
+            { name: 'harness:source', plugin: '@deepseek-ai/dsh-harness-dev-context' },
+            { name: 'harness:identity', plugin: '@deepseek-ai/dsh-system-prompt' },
+        ],
+    );
+    check('宿主自带的纯段落包不补空组',
+        !hostSec.sectionOnlyGroups.some((g) => g.owner === '@deepseek-ai/dsh-harness-dev-context'),
+        hostSec.sectionOnlyGroups.map((g) => [g.category, g.owner]));
+    check('宿主自带的纯段落包落到「未归组」，带来源包',
+        hostSec.ungrouped.some((s) => s.name === 'app:web-surface' && s.plugin === '@deepseek-ai/dsh-harness-dev-context')
+        && hostSec.ungrouped.some((s) => s.name === 'harness:source'),
+        hostSec.ungrouped.map((s) => [s.name, s.plugin]));
+    check('人设常开那几段不在未归组里',
+        !hostSec.ungrouped.some((s) => s.name === 'harness:identity'),
+        hostSec.ungrouped.map((s) => s.name));
 
     // 关掉这台服务器唯一的工具 → 段落跟着走
     await callApi('layer-save', { scope: 'global', layer: { toolFilter: { mode: 'deny', names: ['mcp__testsrv__foo'] } } });
@@ -2602,6 +2627,27 @@ console.log('\n[33] 归属扫描缓存：落盘 / 读回 / 指纹');
     check('白名单判定认这三段', isAlwaysOnSection('harness:identity') === true);
     check('白名单不认别的段', isAlwaysOnSection('tool:bash') === false);
     check('空名字不认', isAlwaysOnSection(undefined) === false);
+}
+
+// ——————————————————— [39] 系统段落默认归属表 ———————————————————
+
+{
+    check('表里认得出宿主自带的那几段',
+        systemSectionOwner('app:web-surface') === '@deepseek-ai/dsh-harness-dev-context'
+        && systemSectionOwner('harness:source') === '@deepseek-ai/dsh-harness-dev-context',
+        systemSectionOwner('app:web-surface'));
+    check('人设三段归官方包',
+        systemSectionOwner('harness:identity') === '@deepseek-ai/dsh-system-prompt'
+        && systemSectionOwner('deployment:persona-prefix') === '@deepseek-ai/dsh-system-prompt',
+        systemSectionOwner('harness:identity'));
+    check('表里的归属都是官方包',
+        [...SYSTEM_SECTION_OWNERS.values()].every((v) => v.startsWith('@deepseek-ai/')),
+        [...SYSTEM_SECTION_OWNERS.values()].join(','));
+    check('表里没有的名字交给反查',
+        systemSectionOwner('dsh-expression:companion') === ''
+        && systemSectionOwner('never-heard-of-it') === ''
+        && systemSectionOwner(undefined) === '',
+        JSON.stringify(systemSectionOwner('never-heard-of-it')));
 }
 
 console.log(failed === 0 ? '\n全部通过' : `\n失败 ${failed} 项`);

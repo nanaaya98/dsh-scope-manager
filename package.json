@@ -1,6 +1,6 @@
 {
   "name": "dsh-scope-manager",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "DeepSeek Harness 作用域管家：按「全局 / 工作区 / 会话」三层作用域管理角色卡、工具、技能、MCP 与预设，带侧边栏。Scope manager for DeepSeek Harness: presets, persona cards, tools, skills and MCP connections bound to global / workspace / session layers.",
   "type": "module",
   "main": "lib/index.js",
