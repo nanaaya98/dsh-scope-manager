@@ -774,8 +774,8 @@ console.log('\n[11] MCP 段落：`mcp:<server>` 归到那台服务器的工具�
         !onlySec.sectionOnlyGroups.some((g) => g.owner === 'dsh-meme'),
         onlySec.sectionOnlyGroups.map((g) => g.owner));
 
-    // 宿主自带的纯段落包（只有段落、没有工具）：不补空组，但段落要能看见 ——
-    // 落到「未归组」，并且带上来源包，界面上标得出它属于哪个官方包。
+    // 宿主自带的纯段落包（只有段落、没有工具）：补一个系统工具组，
+    // 段落挂在那个官方包名下 —— 来源是明确的，就不该飘在「未归组」里让人猜。
     const hostSec = associateSections(
         [{ category: 'system', owner: 'dsh-tool-bash', tools: [{ name: 'bash' }] }],
         [
@@ -784,15 +784,16 @@ console.log('\n[11] MCP 段落：`mcp:<server>` 归到那台服务器的工具�
             { name: 'harness:identity', plugin: '@deepseek-ai/dsh-system-prompt' },
         ],
     );
-    check('宿主自带的纯段落包不补空组',
-        !hostSec.sectionOnlyGroups.some((g) => g.owner === '@deepseek-ai/dsh-harness-dev-context'),
+    check('宿主自带的纯段落包补一个系统工具组',
+        hostSec.sectionOnlyGroups.some((g) => g.owner === '@deepseek-ai/dsh-harness-dev-context' && g.category === 'system'),
         hostSec.sectionOnlyGroups.map((g) => [g.category, g.owner]));
-    check('宿主自带的纯段落包落到「未归组」，带来源包',
-        hostSec.ungrouped.some((s) => s.name === 'app:web-surface' && s.plugin === '@deepseek-ai/dsh-harness-dev-context')
-        && hostSec.ungrouped.some((s) => s.name === 'harness:source'),
+    check('宿主自带的纯段落包挂在自己名下，不进未归组',
+        (hostSec.byGroup.get('system::@deepseek-ai/dsh-harness-dev-context') ?? []).some((s) => s.name === 'app:web-surface')
+        && !hostSec.ungrouped.some((s) => s.name === 'app:web-surface' || s.name === 'harness:source'),
         hostSec.ungrouped.map((s) => [s.name, s.plugin]));
-    check('人设常开那几段不在未归组里',
-        !hostSec.ungrouped.some((s) => s.name === 'harness:identity'),
+    check('人设常开那几段归「角色卡」管，不露头',
+        !hostSec.sectionOnlyGroups.some((g) => g.owner === '@deepseek-ai/dsh-system-prompt')
+        && !hostSec.ungrouped.some((s) => s.name === 'harness:identity'),
         hostSec.ungrouped.map((s) => s.name));
 
     // 关掉这台服务器唯一的工具 → 段落跟着走
